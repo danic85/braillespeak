@@ -18,7 +18,7 @@ WIP. E&OE
 
 Based on 'Keyboard' by Tom Igoe ( http://www.arduino.cc/en/Tutorial/Tone3)
 
-## Example ouput of alphabet
+## Example output of alphabet
 
  a - 0 / 4, 0 - 277 x 196.
  

@@ -12,19 +12,34 @@
    WIP. E&OE
   
    circuit:
-   * 8-ohm speaker on digital pin 8
+   * 8-ohm speaker on digital pin
   
    Based on 'Keyboard' by Tom Igoe ( http://www.arduino.cc/en/Tutorial/Tone3)
 
  */
 
 #include "pitches.h"
-const int speaker = 8; //Pin 8
+const int speaker = 9; // Pin
 const int toneDuration = 200;
 
-const int LEDR = 13;
-const int LEDG = 12;
-const int LEDB = 11;
+const int PIXELS_PIN = 8;
+const int NUM_PIXELS = 3;
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 32
+#define SCREEN_ADDRESS 0x3C
+
+// Initialize the display
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+
+#include <Adafruit_NeoPixel.h>
+
+// Init pixels
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_PIXELS, PIXELS_PIN, NEO_GRB + NEO_KHZ800);
 
 
 // Each character in alphabetical order converted to decimal equivelant of
@@ -70,12 +85,22 @@ const int toneMap[] {
   NOTE_F4
 };
 
+String message;
+
 void setup() {
   pinMode(speaker, OUTPUT);
-  pinMode(LEDR, OUTPUT);
-  pinMode(LEDG, OUTPUT);
-  pinMode(LEDB, OUTPUT);
   Serial.begin(9600);  
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;)
+      ;
+  }
+
+  message = "";
+
+  pixels.begin();
+  pixels.show(); // Initialize all pixels to 'off'
 }
 
 void loop() {
@@ -88,6 +113,9 @@ void loop() {
     content[contentSize++] = Serial.read();
   }
 
+  message = String(content);
+  showDisplay();
+
   for (int i = 0; i < contentSize; i ++)
   {
     handleChar(content[i]);
@@ -95,6 +123,18 @@ void loop() {
 
   
 }
+
+void showDisplay()
+{
+  // display
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println(message);
+  display.display();
+}
+
 void handleChar(char character)
 {
   // Handle spaces.
@@ -180,9 +220,8 @@ void outputColour(int t)
 }
 void setColour(int red, int green, int blue)
 {
-  analogWrite(LEDR, red);
-  analogWrite(LEDG, green);
-  analogWrite(LEDB, blue);
+  pixels.setPixelColor(0, red, green, blue); // R, G, B = 0 (off)
+  pixels.show();
 }
 void outputTone(int t)
 {
